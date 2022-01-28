@@ -11,9 +11,11 @@ class InputConverter {
       if (integer < 0) throw const FormatException();
       return Right(integer);
     } on FormatException {
-      return Left(InvalidInputFailure());
+      return const Left(InvalidInputFailure());
     }
   }
 }
 
-class InvalidInputFailure extends Failure {}
+class InvalidInputFailure extends Failure {
+  const InvalidInputFailure({String? message}) : super(message: message);
+}

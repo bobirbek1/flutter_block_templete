@@ -6,22 +6,22 @@ import 'package:flutter_template/core/error/exceptions.dart';
 import 'package:flutter_template/features/number_trivia/data/datasources/number_trivia_local_data_surce.dart';
 import 'package:flutter_template/features/number_trivia/data/models/number_trivia_model.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../fixtures/fixture_reader.dart';
 import 'number_trivia_local_data_source_test.mocks.dart';
 
-@GenerateMocks([SharedPreferences])
+@GenerateMocks([Box])
 void main() {
-  late SharedPreferences mockPreferences;
+  late Box<dynamic> mockBox;
   late NumberTriviaLocalDataSourceImpl localDataSource;
 
   setUp(() {
-    mockPreferences = MockSharedPreferences();
+    mockBox = MockBox();
     localDataSource =
-        NumberTriviaLocalDataSourceImpl(sharedPreferences: mockPreferences);
+        NumberTriviaLocalDataSourceImpl(box: mockBox);
   });
 
   group("getLastNumberTrivia", () {
@@ -31,16 +31,16 @@ void main() {
     test(
         "should return NumberTrivia from SharedPreferences when there is one in the cache",
         () async {
-      when(mockPreferences.getString(CACHED_NUMBER_TRIVIA))
+      when(mockBox.get(CACHED_NUMBER_TRIVIA))
           .thenReturn(fixture('trivia_cached.json'));
 
       final result = await localDataSource.getLastNumberTrivia();
 
-      verify(mockPreferences.getString(CACHED_NUMBER_TRIVIA));
+      verify(mockBox.get(CACHED_NUMBER_TRIVIA));
       expect(result, equals(tNumberTriviaModel));
     });
     test("should throw a CacheException when there is not a cached value", () {
-      when(mockPreferences.getString(CACHED_NUMBER_TRIVIA)).thenReturn(null);
+      when(mockBox.get(CACHED_NUMBER_TRIVIA)).thenReturn(null);
 
       final call = localDataSource.getLastNumberTrivia;
 
@@ -57,12 +57,12 @@ void main() {
           // assert
           final expectedJsonString = json.encode(tNumberTriviaModel.toJson());
           // act
-          when(mockPreferences.setString(
+          when(mockBox.put(
               CACHED_NUMBER_TRIVIA, expectedJsonString)).thenAnswer((_) async => true);
 
               localDataSource.cacheNumberTrivia(tNumberTriviaModel);
 
-          verify(mockPreferences.setString(
+          verify(mockBox.put(
             CACHED_NUMBER_TRIVIA,
             expectedJsonString,
           ));

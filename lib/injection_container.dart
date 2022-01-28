@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_template/app/app_constants.dart';
+import 'package:flutter_template/core/platform/network_info.dart';
 import 'package:flutter_template/core/utils/input_converter.dart';
 import 'package:flutter_template/features/number_trivia/data/datasources/number_trivia_local_data_surce.dart';
 import 'package:flutter_template/features/number_trivia/data/datasources/number_trivia_remote_data_source.dart';
@@ -10,8 +11,8 @@ import 'package:flutter_template/features/number_trivia/domain/usecases/get_conc
 import 'package:flutter_template/features/number_trivia/domain/usecases/get_random_number_trivia.dart';
 import 'package:flutter_template/features/number_trivia/presentation/bloc/number_trivia_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 // Dependency injection file
 
@@ -23,15 +24,21 @@ Future<void> init() async {
     connectTimeout: CONNECT_TIME_OUT,
     receiveTimeout: RECEIVE_TIME_OUT,
     sendTimeout: SEND_TIME_OUT,
+    contentType: Headers.jsonContentType,
   );
 
-  final sharedPrefs = await SharedPreferences.getInstance();
+  await Hive.initFlutter();
+  final Box<dynamic> hiveBox = await Hive.openBox("myBox");
 
   // // External
-  sl.registerLazySingleton(() => sharedPrefs);
+  sl.registerLazySingleton(() => hiveBox);
   sl.registerLazySingleton(() => Dio(options));
   sl.registerLazySingleton(() => InternetConnectionChecker());
   sl.registerLazySingleton(() => Connectivity());
+  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(
+        connectivity: sl(),
+        dataChecker: sl(),
+      ));
 
   // Bloc
   sl.registerFactory(() => NumberTriviaBloc(
@@ -51,7 +58,7 @@ Future<void> init() async {
           ));
 
   sl.registerLazySingleton<NumberTriviaLocalDataSource>(
-    () => NumberTriviaLocalDataSourceImpl(sharedPreferences: sl()),
+    () => NumberTriviaLocalDataSourceImpl(box: sl()),
   );
 
   // core

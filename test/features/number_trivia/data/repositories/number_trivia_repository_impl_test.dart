@@ -12,6 +12,8 @@ import 'package:mockito/mockito.dart';
 
 import 'number_trivia_repository_impl_test.mocks.dart';
 
+
+
 @GenerateMocks(
     [NumberTriviaRemoteDataSource, NumberTriviaLocalDataSource, NetworkInfo])
 void main() {

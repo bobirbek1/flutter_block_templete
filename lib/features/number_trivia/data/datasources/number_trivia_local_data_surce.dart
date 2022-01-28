@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_template/core/error/exceptions.dart';
 import 'package:flutter_template/features/number_trivia/data/models/number_trivia_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
 
 const String CACHED_NUMBER_TRIVIA = "CACHED_NUMBER_TRIVIA";
 
@@ -12,19 +12,19 @@ abstract class NumberTriviaLocalDataSource {
 }
 
 class NumberTriviaLocalDataSourceImpl extends NumberTriviaLocalDataSource {
-  final SharedPreferences sharedPreferences;
+  final Box<dynamic> box;
 
-  NumberTriviaLocalDataSourceImpl({required this.sharedPreferences});
+  NumberTriviaLocalDataSourceImpl({required this.box});
 
   @override
-  Future<bool> cacheNumberTrivia(NumberTriviaModel triviaToCache) {
-    return sharedPreferences.setString(
+  Future<void> cacheNumberTrivia(NumberTriviaModel triviaToCache) async {
+    return box.put(
         CACHED_NUMBER_TRIVIA, json.encode(triviaToCache.toJson()));
   }
 
   @override
   Future<NumberTriviaModel> getLastNumberTrivia() {
-    final jsonString = sharedPreferences.getString(CACHED_NUMBER_TRIVIA);
+    final jsonString = box.get(CACHED_NUMBER_TRIVIA);
     if (jsonString != null) {
       return Future.value(NumberTriviaModel.fromJson(json.decode(jsonString)));
     } else {
