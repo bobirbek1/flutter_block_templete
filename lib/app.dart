@@ -11,7 +11,6 @@ class MyApp extends StatelessWidget {
       title: "Flutter architect templete",
       theme: ThemeData(
         primaryColor: Colors.green.shade800,
-        accentColor: Colors.green.shade600,
       ),
       home: const NumberTriviaPage(),
     );
